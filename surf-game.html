@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Surf Wave Rider - Interactive Game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to bottom, #87CEEB 0%, #4682B4 50%, #191970 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        .game-header {
+            text-align: center;
+            color: white;
+            margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .game-header h1 {
+            font-size: 3rem;
+            margin: 0;
+            color: #FFD700;
+        }
+
+        .nav-link {
+            color: #FFD700;
+            text-decoration: none;
+            font-weight: bold;
+            margin: 10px;
+            padding: 10px 20px;
+            border: 2px solid #FFD700;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            background: #FFD700;
+            color: #191970;
+        }
+
+        .game-container {
+            position: relative;
+            width: 800px;
+            height: 400px;
+            background: linear-gradient(to bottom, #87CEEB 0%, #4682B4 100%);
+            border: 3px solid #2E8B57;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .ocean {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 60%;
+            background: repeating-linear-gradient(
+                90deg,
+                #006994 0px,
+                #006994 20px,
+                #4682B4 20px,
+                #4682B4 40px
+            );
+            animation: wave 2s ease-in-out infinite;
+        }
+
+        @keyframes wave {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(-20px); }
+        }
+
+        .surfer {
+            position: absolute;
+            bottom: 60%;
+            left: 100px;
+            width: 40px;
+            height: 40px;
+            background: #FFD700;
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .surfer::before {
+            content: '🏄‍♂️';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            font-size: 30px;
+        }
+
+        .wave {
+            position: absolute;
+            bottom: 40%;
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: moveWave 3s linear infinite;
+        }
+
+        @keyframes moveWave {
+            from { right: -80px; }
+            to { right: 100%; }
+        }
+
+        .controls {
+            text-align: center;
+            margin: 20px;
+            color: white;
+        }
+
+        .btn {
+            background: #FF6347;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            margin: 10px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:hover {
+            background: #FF4500;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .score-board {
+            background: rgba(255,255,255,0.9);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .score {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2E8B57;
+            margin: 10px 0;
+        }
+
+        .instruction {
+            background: rgba(255,215,0,0.9);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px;
+            color: #191970;
+            font-weight: bold;
+        }
+
+        .power-up {
+            position: absolute;
+            bottom: 70%;
+            width: 30px;
+            height: 30px;
+            background: #FFD700;
+            border-radius: 50%;
+            animation: float 2s ease-in-out infinite, movePowerUp 4s linear infinite;
+        }
+
+        .power-up::before {
+            content: '⭐';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes movePowerUp {
+            from { right: -30px; }
+            to { right: 100%; }
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+            animation: particle 1s ease-out forwards;
+        }
+
+        @keyframes particle {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0) translateY(-50px);
+            }
+        }
+
+        .achievement {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #32CD32;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            transform: translateX(300px);
+            transition: transform 0.5s ease;
+            z-index: 1000;
+        }
+
+        .achievement.show {
+            transform: translateX(0);
+        }
+
+        @media (max-width: 900px) {
+            .game-container {
+                width: 95%;
+                max-width: 600px;
+            }
+            
+            .game-header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-header">
+        <h1>🌊 Surf Wave Rider 🏄‍♂️</h1>
+        <p>Ride the waves and collect stars!</p>
+        <a href="surfing.html" class="nav-link">← Back to Surfing Page</a>
+        <a href="index.html" class="nav-link">Professional Site</a>
+    </div>
+
+    <div class="instruction">
+        🎮 Use UP/DOWN arrows or click buttons to move your surfer. Catch waves and collect stars for points!
+    </div>
+
+    <div class="game-container" id="gameContainer">
+        <div class="ocean"></div>
+        <div class="surfer" id="surfer"></div>
+    </div>
+
+    <div class="controls">
+        <button class="btn" onclick="moveSurfer('up')">🔺 Move Up</button>
+        <button class="btn" onclick="startGame()">🎮 Start Game</button>
+        <button class="btn" onclick="moveSurfer('down')">🔻 Move Down</button>
+        <button class="btn" onclick="resetGame()">🔄 Reset</button>
+    </div>
+
+    <div class="score-board">
+        <div class="score">Score: <span id="score">0</span></div>
+        <div class="score">Waves Caught: <span id="waves">0</span></div>
+        <div class="score">Stars Collected: <span id="stars">0</span></div>
+        <div class="score">Level: <span id="level">1</span></div>
+    </div>
+
+    <div class="achievement" id="achievement">
+        Achievement Unlocked! 🏆
+    </div>
+
+    <script>
+        let gameState = {
+            score: 0,
+            waves: 0,
+            stars: 0,
+            level: 1,
+            isGameRunning: false,
+            surferPosition: 50,
+            gameSpeed: 3000,
+            powerUpChance: 0.3
+        };
+
+        const surfer = document.getElementById('surfer');
+        const gameContainer = document.getElementById('gameContainer');
+        let gameInterval;
+        let powerUpInterval;
+
+        function updateDisplay() {
+            document.getElementById('score').textContent = gameState.score;
+            document.getElementById('waves').textContent = gameState.waves;
+            document.getElementById('stars').textContent = gameState.stars;
+            document.getElementById('level').textContent = gameState.level;
+        }
+
+        function moveSurfer(direction) {
+            if (!gameState.isGameRunning) return;
+            
+            if (direction === 'up' && gameState.surferPosition > 10) {
+                gameState.surferPosition -= 20;
+            } else if (direction === 'down' && gameState.surferPosition < 80) {
+                gameState.surferPosition += 20;
+            }
+            
+            surfer.style.bottom = gameState.surferPosition + '%';
+            createParticles(surfer.offsetLeft + 20, surfer.offsetTop + 20);
+        }
+
+        function createWave() {
+            const wave = document.createElement('div');
+            wave.className = 'wave';
+            wave.style.bottom = Math.random() * 40 + 40 + '%';
+            gameContainer.appendChild(wave);
+
+            // Check for collision
+            setTimeout(() => {
+                const waveRect = wave.getBoundingClientRect();
+                const surferRect = surfer.getBoundingClientRect();
+                
+                if (isColliding(waveRect, surferRect)) {
+                    gameState.waves++;
+                    gameState.score += 50;
+                    createParticles(wave.offsetLeft, wave.offsetTop);
+                    checkAchievements();
+                }
+            }, 1500);
+
+            // Remove wave after animation
+            setTimeout(() => {
+                if (wave.parentNode) {
+                    wave.parentNode.removeChild(wave);
+                }
+            }, 3000);
+        }
+
+        function createPowerUp() {
+            if (Math.random() < gameState.powerUpChance) {
+                const powerUp = document.createElement('div');
+                powerUp.className = 'power-up';
+                powerUp.style.bottom = Math.random() * 30 + 60 + '%';
+                gameContainer.appendChild(powerUp);
+
+                // Check for collision
+                setTimeout(() => {
+                    const powerUpRect = powerUp.getBoundingClientRect();
+                    const surferRect = surfer.getBoundingClientRect();
+                    
+                    if (isColliding(powerUpRect, surferRect)) {
+                        gameState.stars++;
+                        gameState.score += 100;
+                        createStarBurst(powerUp.offsetLeft, powerUp.offsetTop);
+                        checkAchievements();
+                    }
+                }, 2000);
+
+                // Remove power-up after animation
+                setTimeout(() => {
+                    if (powerUp.parentNode) {
+                        powerUp.parentNode.removeChild(powerUp);
+                    }
+                }, 4000);
+            }
+        }
+
+        function isColliding(rect1, rect2) {
+            return !(rect1.right < rect2.left || 
+                    rect1.left > rect2.right || 
+                    rect1.bottom < rect2.top || 
+                    rect1.top > rect2.bottom);
+        }
+
+        function createParticles(x, y) {
+            for (let i = 0; i < 6; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = x + Math.random() * 20 - 10 + 'px';
+                particle.style.top = y + Math.random() * 20 - 10 + 'px';
+                gameContainer.appendChild(particle);
+                
+                setTimeout(() => {
+                    if (particle.parentNode) {
+                        particle.parentNode.removeChild(particle);
+                    }
+                }, 1000);
+            }
+        }
+
+        function createStarBurst(x, y) {
+            for (let i = 0; i < 10; i++) {
+                const star = document.createElement('div');
+                star.textContent = '⭐';
+                star.style.position = 'absolute';
+                star.style.left = x + 'px';
+                star.style.top = y + 'px';
+                star.style.fontSize = '12px';
+                star.style.animation = `particle ${Math.random() * 0.5 + 0.5}s ease-out forwards`;
+                gameContainer.appendChild(star);
+                
+                setTimeout(() => {
+                    if (star.parentNode) {
+                        star.parentNode.removeChild(star);
+                    }
+                }, 1000);
+            }
+        }
+
+        function checkAchievements() {
+            const achievement = document.getElementById('achievement');
+            let message = '';
+
+            if (gameState.stars === 5) {
+                message = 'Star Collector! 🌟';
+            } else if (gameState.waves === 10) {
+                message = 'Wave Master! 🌊';
+            } else if (gameState.score >= 1000) {
+                message = 'High Score Legend! 🏆';
+            }
+
+            if (message) {
+                achievement.textContent = message;
+                achievement.classList.add('show');
+                setTimeout(() => {
+                    achievement.classList.remove('show');
+                }, 3000);
+            }
+
+            // Level up logic
+            const newLevel = Math.floor(gameState.score / 500) + 1;
+            if (newLevel > gameState.level) {
+                gameState.level = newLevel;
+                gameState.gameSpeed = Math.max(1000, gameState.gameSpeed - 200);
+                gameState.powerUpChance = Math.min(0.7, gameState.powerUpChance + 0.1);
+                clearInterval(gameInterval);
+                clearInterval(powerUpInterval);
+                startGameLoop();
+            }
+
+            updateDisplay();
+        }
+
+        function startGameLoop() {
+            gameInterval = setInterval(createWave, gameState.gameSpeed);
+            powerUpInterval = setInterval(createPowerUp, gameState.gameSpeed * 1.5);
+        }
+
+        function startGame() {
+            if (gameState.isGameRunning) return;
+            
+            gameState.isGameRunning = true;
+            gameState.surferPosition = 50;
+            surfer.style.bottom = '50%';
+            
+            startGameLoop();
+            updateDisplay();
+        }
+
+        function resetGame() {
+            gameState = {
+                score: 0,
+                waves: 0,
+                stars: 0,
+                level: 1,
+                isGameRunning: false,
+                surferPosition: 50,
+                gameSpeed: 3000,
+                powerUpChance: 0.3
+            };
+            
+            clearInterval(gameInterval);
+            clearInterval(powerUpInterval);
+            
+            // Remove all waves and power-ups
+            const waves = document.querySelectorAll('.wave, .power-up, .particle');
+            waves.forEach(wave => wave.remove());
+            
+            surfer.style.bottom = '50%';
+            updateDisplay();
+        }
+
+        // Keyboard controls
+        document.addEventListener('keydown', (event) => {
+            switch(event.key) {
+                case 'ArrowUp':
+                    event.preventDefault();
+                    moveSurfer('up');
+                    break;
+                case 'ArrowDown':
+                    event.preventDefault();
+                    moveSurfer('down');
+                    break;
+                case ' ':
+                    event.preventDefault();
+                    if (!gameState.isGameRunning) {
+                        startGame();
+                    }
+                    break;
+            }
+        });
+
+        // Touch controls for mobile
+        let touchStartY = 0;
+        gameContainer.addEventListener('touchstart', (e) => {
+            touchStartY = e.touches[0].clientY;
+        });
+
+        gameContainer.addEventListener('touchend', (e) => {
+            const touchEndY = e.changedTouches[0].clientY;
+            const diff = touchStartY - touchEndY;
+            
+            if (Math.abs(diff) > 20) {
+                if (diff > 0) {
+                    moveSurfer('up');
+                } else {
+                    moveSurfer('down');
+                }
+            }
+        });
+
+        // Initialize display
+        updateDisplay();
+
+        // Add some random ambient waves even when game isn't running
+        setInterval(() => {
+            if (!gameState.isGameRunning) {
+                const ambientWave = document.createElement('div');
+                ambientWave.className = 'wave';
+                ambientWave.style.bottom = Math.random() * 40 + 40 + '%';
+                ambientWave.style.opacity = '0.3';
+                gameContainer.appendChild(ambientWave);
+                
+                setTimeout(() => {
+                    if (ambientWave.parentNode) {
+                        ambientWave.parentNode.removeChild(ambientWave);
+                    }
+                }, 3000);
+            }
+        }, 5000);
+    </script>
+</body>
+</html> 
