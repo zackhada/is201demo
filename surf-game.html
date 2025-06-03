@@ -293,6 +293,7 @@
         const gameContainer = document.getElementById('gameContainer');
         let gameInterval;
         let powerUpInterval;
+        let collisionInterval;
 
         function updateDisplay() {
             document.getElementById('score').textContent = gameState.score;
@@ -318,20 +319,8 @@
             const wave = document.createElement('div');
             wave.className = 'wave';
             wave.style.bottom = Math.random() * 40 + 40 + '%';
+            wave.dataset.collected = 'false';
             gameContainer.appendChild(wave);
-
-            // Check for collision
-            setTimeout(() => {
-                const waveRect = wave.getBoundingClientRect();
-                const surferRect = surfer.getBoundingClientRect();
-                
-                if (isColliding(waveRect, surferRect)) {
-                    gameState.waves++;
-                    gameState.score += 50;
-                    createParticles(wave.offsetLeft, wave.offsetTop);
-                    checkAchievements();
-                }
-            }, 1500);
 
             // Remove wave after animation
             setTimeout(() => {
@@ -346,20 +335,8 @@
                 const powerUp = document.createElement('div');
                 powerUp.className = 'power-up';
                 powerUp.style.bottom = Math.random() * 30 + 60 + '%';
+                powerUp.dataset.collected = 'false';
                 gameContainer.appendChild(powerUp);
-
-                // Check for collision
-                setTimeout(() => {
-                    const powerUpRect = powerUp.getBoundingClientRect();
-                    const surferRect = surfer.getBoundingClientRect();
-                    
-                    if (isColliding(powerUpRect, surferRect)) {
-                        gameState.stars++;
-                        gameState.score += 100;
-                        createStarBurst(powerUp.offsetLeft, powerUp.offsetTop);
-                        checkAchievements();
-                    }
-                }, 2000);
 
                 // Remove power-up after animation
                 setTimeout(() => {
@@ -368,6 +345,52 @@
                     }
                 }, 4000);
             }
+        }
+
+        function checkCollisions() {
+            if (!gameState.isGameRunning) return;
+            
+            const surferRect = surfer.getBoundingClientRect();
+            
+            // Check wave collisions
+            const waves = document.querySelectorAll('.wave');
+            waves.forEach(wave => {
+                if (wave.dataset.collected === 'false') {
+                    const waveRect = wave.getBoundingClientRect();
+                    if (isColliding(waveRect, surferRect)) {
+                        wave.dataset.collected = 'true';
+                        gameState.waves++;
+                        gameState.score += 50;
+                        createParticles(wave.offsetLeft, wave.offsetTop);
+                        updateDisplay();
+                        checkAchievements();
+                        
+                        // Visual feedback
+                        wave.style.opacity = '0.3';
+                        wave.style.transform = 'scale(1.2)';
+                    }
+                }
+            });
+            
+            // Check power-up collisions
+            const powerUps = document.querySelectorAll('.power-up');
+            powerUps.forEach(powerUp => {
+                if (powerUp.dataset.collected === 'false') {
+                    const powerUpRect = powerUp.getBoundingClientRect();
+                    if (isColliding(powerUpRect, surferRect)) {
+                        powerUp.dataset.collected = 'true';
+                        gameState.stars++;
+                        gameState.score += 100;
+                        createStarBurst(powerUp.offsetLeft, powerUp.offsetTop);
+                        updateDisplay();
+                        checkAchievements();
+                        
+                        // Visual feedback
+                        powerUp.style.opacity = '0.3';
+                        powerUp.style.transform = 'scale(1.5)';
+                    }
+                }
+            });
         }
 
         function isColliding(rect1, rect2) {
@@ -442,13 +465,12 @@
                 clearInterval(powerUpInterval);
                 startGameLoop();
             }
-
-            updateDisplay();
         }
 
         function startGameLoop() {
             gameInterval = setInterval(createWave, gameState.gameSpeed);
             powerUpInterval = setInterval(createPowerUp, gameState.gameSpeed * 1.5);
+            collisionInterval = setInterval(checkCollisions, 50); // Check collisions every 50ms
         }
 
         function startGame() {
@@ -476,6 +498,7 @@
             
             clearInterval(gameInterval);
             clearInterval(powerUpInterval);
+            clearInterval(collisionInterval);
             
             // Remove all waves and power-ups
             const waves = document.querySelectorAll('.wave, .power-up, .particle');
